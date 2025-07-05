@@ -1,0 +1,14 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: vininfra
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+networking:
+  kubeProxyMode: "nftables"
+  apiServerAddress: "0.0.0.0"
+  apiServerPort: 26443
+  podSubnet: "192.169.0.0/16"
+  serviceSubnet: "10.112.0.0/12"
+  disableDefaultCNI: true
