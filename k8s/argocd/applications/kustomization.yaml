@@ -1,0 +1,4 @@
+namespace: argocd
+resources:
+- vininfra.yaml
+- vinlab.yaml

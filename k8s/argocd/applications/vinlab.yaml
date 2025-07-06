@@ -1,0 +1,56 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: vinlab
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  description: This project will contains all applications in vininfra folder
+  destinations:
+  - name: '*'
+    namespace: '*'
+    server: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vinlab
+  annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
+spec:
+  generators:
+    - git:
+        repoURL: git@github.com:vintechlab/vinlab.git
+        revision: HEAD
+        directories:
+          - path: k8s/lab101*/*
+
+  goTemplate: true
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: vinlab
+      source:
+        repoURL: git@github.com:vintechlab/vinlab.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://vinlab-control-plane:6443
+        namespace: '{{ .path.basename }}'
+      syncPolicy:
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+          - Validate=true
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - ServerSideApply=true
+          - FailOnSharedResource=true
+      revisionHistoryLimit: 3

@@ -1,0 +1,56 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: vininfra
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  description: This project will contains all applications in vininfra folder
+  destinations:
+  - name: '*'
+    namespace: '*'
+    server: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vininfra
+  annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
+spec:
+  generators:
+    - git:
+        repoURL: git@github.com:vintechlab/vininfra.git
+        revision: HEAD
+        directories:
+          - path: k8s/network/*
+
+  goTemplate: true
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: vininfra
+      source:
+        repoURL: git@github.com:vintechlab/vininfra.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .path.basename }}'
+      syncPolicy:
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+          - Validate=true
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - ServerSideApply=true
+          - FailOnSharedResource=true
+      revisionHistoryLimit: 3
